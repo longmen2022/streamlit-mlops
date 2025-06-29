@@ -106,4 +106,67 @@ kubectl apply -f service.yaml
 
 ---
 
-Would you like help customizing the YAML files for your app’s layout or adding persistent volumes or secrets? I can also help integrate your CSS themes or health-specific Streamlit logic into the container if needed.
+Using **Helm** to configure and deploy applications on **Amazon EKS (Elastic Kubernetes Service)** is a powerful way to streamline Kubernetes app management. Here's a step-by-step guide to get you started, along with some excellent video tutorials to walk you through the process visually.
+
+---
+
+### 🛠️ Step-by-Step: Use Helm with EKS
+
+1. **Set Up Your EKS Cluster**
+   - Use `eksctl` or the AWS Console to create your EKS cluster.
+   - Ensure `kubectl` is configured to communicate with your cluster:
+     ```bash
+     aws eks --region <region> update-kubeconfig --name <cluster_name>
+     ```
+
+2. **Install Helm**
+   - On macOS:
+     ```bash
+     brew install helm
+     ```
+   - On Ubuntu:
+     ```bash
+     curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+     ```
+
+3. **Add a Helm Repository**
+   - For example, to add Bitnami:
+     ```bash
+     helm repo add bitnami https://charts.bitnami.com/bitnami
+     helm repo update
+     ```
+
+4. **Install a Helm Chart**
+   - Example: Deploy NGINX
+     ```bash
+     helm install my-nginx bitnami/nginx --namespace nginx --create-namespace
+     ```
+
+5. **Verify Deployment**
+   - Check pods and services:
+     ```bash
+     kubectl get all -n nginx
+     ```
+
+---
+
+### 🎥 Helpful Video Tutorials
+
+1. [**Deploy Helm Chart on EKS cluster | Deploy Application on EKS using HELM**](https://www.youtube.com/watch?v=tOA3WQyJq5U)  
+   This video walks through installing Helm, setting up AWS CLI, and deploying a Helm chart on EKS—perfect for hands-on learners.
+
+2. [**(UPDATED CODE) Deploy Helm Charts on AWS EKS Using Terraform Helm Provider**](https://www.youtube.com/watch?v=uVuR3a19wFw)  
+   Great if you're using Terraform. It shows how to deploy Jenkins via Helm on EKS using infrastructure-as-code.
+
+3. [**Custom Helm Charts to Deploy Kubernetes Application on EKS**](https://www.youtube.com/watch?v=lLLEmrr9uxQ)  
+   Learn how to create and use your own Helm charts for more customized deployments.
+
+4. [**How To Setup WordPress In AWS EKS Using Helm**](https://www.youtube.com/watch?v=LoJM3eP9ow0)  
+   A practical example of deploying a full application (WordPress) using Helm on EKS, including domain setup and load balancers.
+
+5. [**Install Istio Using Helm Chart in AWS EKS**](https://www.youtube.com/watch?v=RHkr6Ny6YEo)  
+   If you're working with service meshes, this video shows how to install Istio using Helm on EKS.
+
+---
+
+Would you like help writing a custom Helm chart for one of your Streamlit apps or deploying a specific service like a database or ML model?
