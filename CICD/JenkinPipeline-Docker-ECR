@@ -17,6 +17,7 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            dir (app/Dockerfile)
             steps {
                 sh '''
                     export HOME=$PWD
