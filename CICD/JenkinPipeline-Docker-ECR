@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    environment {
+        registry = "471112503258.dkr.ecr.us-east-1.amazonaws.com/cancer-app"
+        IMAGE_NAME = "cancer-app"
+        DOCKERFILE_DIR = "CICD"
+        TAG = "latest"
+        REGION = "us-east-1"
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git url: 'https://github.com/longmen2022/streamlit-mlops.git', branch: 'main'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    export HOME=$PWD
+                    docker build -t ${IMAGE_NAME}:${TAG} -f ${DOCKERFILE_DIR}/Dockerfile .
+                '''
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'awscreds'
+                ]]) {
+                    sh '''
+                        echo "🔐 Logging in to Amazon ECR..."
+                        aws ecr get-login-password --region ${REGION} | \
+                        docker login --username AWS --password-stdin ${registry}
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Image to ECR') {
+            steps {
+                sh '''
+                    echo "🚀 Tagging and pushing image to ECR..."
+                    docker tag ${IMAGE_NAME}:${TAG} ${registry}:${TAG}
+                    docker push ${registry}:${TAG}
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Docker image pushed to: ${registry}:${TAG}"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check the logs for details."
+        }
+    }
+}

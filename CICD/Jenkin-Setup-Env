@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    environment {
+        VENV_DIR = 'venv'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git url: 'https://github.com/longmen2022/streamlit-mlops.git', branch: 'main'
+            }
+        }
+
+        stage('Set Up Python Environment') {
+            steps {
+                sh '''
+                    python3 -m venv ${VENV_DIR}
+                    . ${VENV_DIR}/bin/activate
+                    pip install --upgrade pip setuptools wheel
+                    pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh '''
+                        . ${VENV_DIR}/bin/activate
+                        sonar-scanner \
+                          -Dsonar.projectKey=streamlit-mlops \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=$SONAR_HOST_URL \
+                          -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
+                }
+            }
+        }
+
+        stage('Run Streamlit App') {
+            steps {
+                sh '''
+                    . ${VENV_DIR}/bin/activate
+                    streamlit run app/main.py
+                '''
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo '❌ Build failed. Check console output for logs.'
+        }
+        success {
+            echo '✅ Streamlit app analyzed and deployed successfully!'
+        }
+    }
+}

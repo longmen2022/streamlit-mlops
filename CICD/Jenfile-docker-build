@@ -1,0 +1,35 @@
+pipeline {
+    agent {
+        docker { image 'docker:latest'; args '-v /var/run/docker.sock:/var/run/docker.sock' }
+    }
+    environment {
+        IMAGE_NAME = 'streamlit-mlops'
+        DOCKERFILE_DIR = 'CICD'
+        TAG = "v1.0.${BUILD_NUMBER}"
+    }
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git url: 'https://github.com/longmen2022/streamlit-mlops.git', branch: 'main'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    export HOME=$PWD
+                    docker build -t ${IMAGE_NAME}:${TAG} -f ${DOCKERFILE_DIR}/Dockerfile .
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Built Docker image: ${IMAGE_NAME}:${TAG}"
+        }
+        failure {
+            echo '❌ Docker build failed.'
+        }
+    }
+}
